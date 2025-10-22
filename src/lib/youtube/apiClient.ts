@@ -14,10 +14,10 @@ const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
 /**
  * YouTube Data API v3를 사용하여 댓글을 가져옵니다.
- * 페이지네이션을 자동으로 처리하여 모든 댓글을 반환합니다.
+ * 페이지네이션을 자동으로 처리하여 최대 1,000개의 댓글을 반환합니다.
  * 
  * @param params - API 요청 파라미터
- * @returns 댓글 배열
+ * @returns 댓글 배열 (최대 1,000개)
  * @throws {YouTubeApiClientError} API 호출 실패 시
  * 
  * @example
@@ -31,6 +31,7 @@ export async function fetchComments(
   params: FetchCommentsParams
 ): Promise<Comment[]> {
   const { videoId, maxResults = 100, order = "relevance" } = params;
+  const MAX_TOTAL_COMMENTS = 1000; // 최대 1,000개까지만 가져오기
 
   const apiKey = process.env.YOUTUBE_API_KEY;
 
@@ -46,7 +47,7 @@ export async function fetchComments(
   let pageToken: string | undefined = undefined;
 
   try {
-    // 페이지네이션 처리: nextPageToken이 없을 때까지 반복
+    // 페이지네이션 처리: nextPageToken이 없거나 1,000개에 도달할 때까지 반복
     let pageCount = 0;
     do {
       pageCount++;
@@ -73,10 +74,18 @@ export async function fetchComments(
 
       // 다음 페이지 토큰 설정
       pageToken = response.data.nextPageToken;
+
+      // 1,000개 도달 시 중단
+      if (allComments.length >= MAX_TOTAL_COMMENTS) {
+        console.log(`[YouTube API] Reached maximum limit of ${MAX_TOTAL_COMMENTS} comments`);
+        break;
+      }
     } while (pageToken);
 
-    console.log(`[YouTube API] Completed! Total comments fetched: ${allComments.length} from ${pageCount} pages`);
-    return allComments;
+    // 1,000개 초과 시 자르기
+    const finalComments = allComments.slice(0, MAX_TOTAL_COMMENTS);
+    console.log(`[YouTube API] Completed! Total comments fetched: ${finalComments.length} from ${pageCount} pages`);
+    return finalComments;
   } catch (error) {
     throw handleYouTubeApiError(error);
   }

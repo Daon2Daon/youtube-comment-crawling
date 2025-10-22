@@ -7,7 +7,8 @@
 
 import { CommentItem } from "./CommentItem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MessageSquare, Info } from "lucide-react";
 import type { Comment } from "@/types/youtube";
 
 interface CommentListProps {
@@ -37,6 +38,8 @@ export const CommentList = ({ comments, isLoading, totalCount }: CommentListProp
     return null;
   }
 
+  const isMaxLimitReached = comments.length >= 1000;
+
   return (
     <div className="space-y-4">
       {/* 댓글 수 표시 */}
@@ -46,6 +49,16 @@ export const CommentList = ({ comments, isLoading, totalCount }: CommentListProp
           댓글 {totalCount?.toLocaleString() || comments.length.toLocaleString()}개
         </h2>
       </div>
+
+      {/* 1,000개 제한 안내 */}
+      {isMaxLimitReached && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            최대 1,000개의 댓글을 가져왔습니다. 성능을 위해 댓글 수를 제한하고 있습니다.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* [F-05] 댓글 리스트 */}
       <div className="space-y-3">
