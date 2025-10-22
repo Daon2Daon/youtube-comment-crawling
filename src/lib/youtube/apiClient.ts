@@ -62,7 +62,7 @@ export async function fetchComments(
             videoId,
             maxResults,
             order,
-            pageToken,
+            ...(pageToken && { pageToken }), // pageToken이 있을 때만 포함
           },
         }
       );
