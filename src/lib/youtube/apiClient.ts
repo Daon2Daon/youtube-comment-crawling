@@ -67,6 +67,15 @@ export async function fetchComments(
         }
       );
 
+      // API 응답 구조 디버깅
+      console.log(`[YouTube API] Response metadata:`, {
+        kind: response.data.kind,
+        etag: response.data.etag?.substring(0, 20) + '...',
+        nextPageToken: response.data.nextPageToken ? response.data.nextPageToken.substring(0, 20) + '...' : 'NONE',
+        pageInfo: response.data.pageInfo,
+        itemCount: response.data.items?.length || 0,
+      });
+
       // 댓글 데이터 변환 및 추가
       const comments = response.data.items.map(transformComment);
       allComments.push(...comments);
@@ -74,6 +83,7 @@ export async function fetchComments(
 
       // 다음 페이지 토큰 설정
       pageToken = response.data.nextPageToken;
+      console.log(`[YouTube API] nextPageToken:`, pageToken ? `${pageToken.substring(0, 20)}...` : 'undefined (마지막 페이지)');
 
       // 1,000개 도달 시 중단
       if (allComments.length >= MAX_TOTAL_COMMENTS) {
