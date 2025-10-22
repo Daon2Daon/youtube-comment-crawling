@@ -30,7 +30,7 @@ const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
 export async function fetchComments(
   params: FetchCommentsParams
 ): Promise<Comment[]> {
-  const { videoId, maxResults = 100, order = "relevance" } = params;
+  const { videoId, maxResults = 100, order = "time" } = params;
   const MAX_TOTAL_COMMENTS = 1000; // 최대 1,000개까지만 가져오기
 
   const apiKey = process.env.YOUTUBE_API_KEY;

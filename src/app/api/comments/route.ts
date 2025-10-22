@@ -14,7 +14,7 @@ import type { FetchCommentsResponse, ErrorResponse } from "@/types/youtube";
  */
 const requestSchema = z.object({
   videoUrl: z.string().min(1, "YouTube URL을 입력해주세요."),
-  order: z.enum(["relevance", "time"]).optional().default("relevance"),
+  order: z.enum(["relevance", "time"]).optional().default("time"),
   maxResults: z.number().int().min(1).max(100).optional().default(100),
 });
 
