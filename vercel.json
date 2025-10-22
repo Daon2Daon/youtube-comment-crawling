@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "src/app/api/comments/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
+

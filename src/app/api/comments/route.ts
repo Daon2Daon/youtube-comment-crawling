@@ -57,11 +57,13 @@ export async function POST(request: NextRequest) {
     }
 
     // YouTube API 호출하여 댓글 가져오기
+    console.log(`[API] Fetching comments for videoId: ${videoId}`);
     const comments = await fetchComments({
       videoId,
       order,
       maxResults,
     });
+    console.log(`[API] Successfully fetched ${comments.length} comments`);
 
     // 성공 응답
     const response: FetchCommentsResponse = {

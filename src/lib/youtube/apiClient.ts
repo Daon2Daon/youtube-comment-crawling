@@ -47,7 +47,11 @@ export async function fetchComments(
 
   try {
     // 페이지네이션 처리: nextPageToken이 없을 때까지 반복
+    let pageCount = 0;
     do {
+      pageCount++;
+      console.log(`[YouTube API] Fetching page ${pageCount}${pageToken ? ` (token: ${pageToken.substring(0, 10)}...)` : ''}`);
+      
       const response: AxiosResponse<YouTubeCommentThreadResponse> = await axios.get<YouTubeCommentThreadResponse>(
         `${YOUTUBE_API_BASE_URL}/commentThreads`,
         {
@@ -65,11 +69,13 @@ export async function fetchComments(
       // 댓글 데이터 변환 및 추가
       const comments = response.data.items.map(transformComment);
       allComments.push(...comments);
+      console.log(`[YouTube API] Page ${pageCount}: ${comments.length} comments fetched, total: ${allComments.length}`);
 
       // 다음 페이지 토큰 설정
       pageToken = response.data.nextPageToken;
     } while (pageToken);
 
+    console.log(`[YouTube API] Completed! Total comments fetched: ${allComments.length} from ${pageCount} pages`);
     return allComments;
   } catch (error) {
     throw handleYouTubeApiError(error);
