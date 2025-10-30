@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+  # ==========================================
+  # YouTube 댓글 크롤링 웹 애플리케이션
+  # Synology NAS 최적화 버전
+  # ==========================================
+  youtube-comments-app:
+    container_name: youtube-comments-app
+    
+    # Docker Hub에서 이미지를 가져올 경우 아래 주석 해제하고 YOUR_USERNAME 변경
+    # image: YOUR_USERNAME/youtube-comments-app:latest
+    
+    # 로컬 이미지 사용
+    image: youtube-comments-app:latest
+    
+    # 포트 매핑 (호스트:컨테이너)
+    # 필요시 다른 포트로 변경 (예: "8080:3000")
+    ports:
+      - "2923:3000"
+    
+    # 환경 변수 파일
+    # Synology에서 .env.production 파일을 같은 디렉토리에 배치
+    env_file:
+      - .env.production
+    
+    # 환경 변수 직접 설정 (env_file이 없을 경우)
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Seoul
+      # YouTube API 키는 .env.production에서 설정 권장
+      # 또는 아래 주석 해제하고 직접 입력 (비권장)
+      # - YOUTUBE_API_KEY=your_api_key_here
+    
+    # 재시작 정책
+    # always: 항상 자동 재시작
+    # unless-stopped: 수동으로 중지하지 않는 한 항상 재시작
+    restart: unless-stopped
+    
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+    # 로그 설정 (디스크 공간 절약)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # 네트워크
+    networks:
+      - youtube-comments-network
+
+networks:
+  youtube-comments-network:
+    driver: bridge
+
+# ==========================================
+# 사용 방법:
+# ==========================================
+# 1. 이 파일을 Synology의 /volume1/docker/youtube-comments/ 디렉토리에 배치
+# 2. .env.production 파일도 같은 디렉토리에 배치
+# 3. 다음 명령어로 실행:
+#    docker-compose -f docker-compose.synology.yml up -d
+# 4. 로그 확인:
+#    docker-compose -f docker-compose.synology.yml logs -f
+# 5. 중지:
+#    docker-compose -f docker-compose.synology.yml down
+
