@@ -1,0 +1,56 @@
+# 의존성
+node_modules
+npm-debug.log*
+
+# Next.js 빌드 결과물
+.next
+out
+
+# 환경 변수 (민감한 정보 보호)
+.env
+.env*.local
+.env.production
+
+# 개발 도구
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 테스트
+coverage
+.nyc_output
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# 문서 및 기타 (배포 관련 문서)
+docs/
+CHANGELOG.md
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 로그
+*.log
+logs
+
+# 임시 파일
+tmp
+temp
+*.tmp
+
+# Docker 관련
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+

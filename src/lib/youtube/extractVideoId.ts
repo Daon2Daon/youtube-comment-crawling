@@ -84,14 +84,3 @@ export function extractVideoId(url: string): string | null {
 export function isValidVideoId(videoId: string): boolean {
   return /^[a-zA-Z0-9_-]{11}$/.test(videoId);
 }
-
-/**
- * YouTube URL의 유효성을 검증합니다.
- * 
- * @param url - 검증할 URL
- * @returns 유효한 YouTube URL인지 여부
- */
-export function isValidYouTubeUrl(url: string): boolean {
-  return extractVideoId(url) !== null;
-}
-

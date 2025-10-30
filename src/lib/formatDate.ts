@@ -53,15 +53,3 @@ export function formatDate(
     return "날짜 형식 오류";
   }
 }
-
-/**
- * 날짜 문자열의 유효성을 검증합니다.
- * 
- * @param dateString - 검증할 날짜 문자열
- * @returns 유효한 날짜인지 여부
- */
-export function isValidDate(dateString: string): boolean {
-  const date = new Date(dateString);
-  return !isNaN(date.getTime());
-}
-

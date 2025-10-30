@@ -1,0 +1,95 @@
+version: '3.9'
+
+services:
+  # ==========================================
+  # YouTube 댓글 크롤링 웹 애플리케이션
+  # ==========================================
+  youtube-comments-app:
+    container_name: youtube-comments-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: youtube-comments-app:latest
+    
+    # 포트 매핑 (호스트:컨테이너)
+    # Synology NAS에서는 다른 포트를 사용하려면 "8080:3000" 형식으로 변경
+    ports:
+      - "2923:3000"
+    
+    # 환경 변수 파일 (선택사항)
+    # .env.production 파일이 있으면 자동으로 로드
+    # 없으면 아래 environment 섹션의 값 사용
+    env_file:
+      - .env.production
+    
+    # 환경 변수 직접 설정
+    # .env.production 파일이 없을 때 사용됨
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Seoul
+      # YouTube API 키는 반드시 설정 필요
+      # 방법 1: .env.production 파일에서 설정 (권장)
+      # 방법 2: 아래 주석을 해제하고 직접 입력
+      # - YOUTUBE_API_KEY=your_api_key_here
+    
+    # 재시작 정책
+    restart: unless-stopped
+    
+    # 헬스체크 (Synology Docker GUI에서 확인 가능)
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+    # 리소스 제한 (Synology NAS 환경에 맞게 조정)
+    # 주의: Docker Compose v3에서는 swarm 모드가 아니면 무시됨
+    # Synology Docker GUI에서 직접 설정하는 것을 권장
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 512M
+    
+    # 로그 설정
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # 네트워크
+    networks:
+      - youtube-comments-network
+
+  # ==========================================
+  # Nginx 리버스 프록시 (선택사항)
+  # HTTPS 및 도메인 사용 시 활성화
+  # ==========================================
+  # nginx:
+  #   container_name: youtube-comments-nginx
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - youtube-comments-app
+  #   restart: unless-stopped
+  #   networks:
+  #     - youtube-comments-network
+
+networks:
+  youtube-comments-network:
+    driver: bridge
+
+# 볼륨 (필요시 추가)
+# volumes:
+#   app-data:
+

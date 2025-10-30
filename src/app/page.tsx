@@ -54,8 +54,9 @@ const Page = () => {
         {/* 푸터 */}
         <footer className="mt-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
           <p>
-            이 서비스는 YouTube Data API v3를 사용합니다.
+            Developed by 묵 for 서양수 차장님 - 2025.10.23
           </p>
+          <p><small>(나중에 댓글 분류&분석 기능도 개발해 볼게요)</small></p>
         </footer>
       </div>
     </div>

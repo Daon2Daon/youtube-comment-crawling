@@ -1,6 +1,6 @@
 {
-  "name": "temp-nextjs-app",
-  "version": "0.1.0",
+  "name": "youtube-comment-crawler",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

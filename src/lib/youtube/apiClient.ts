@@ -49,9 +49,13 @@ export async function fetchComments(
   try {
     // 페이지네이션 처리: nextPageToken이 없거나 1,000개에 도달할 때까지 반복
     let pageCount = 0;
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
     do {
       pageCount++;
-      console.log(`[YouTube API] Fetching page ${pageCount}${pageToken ? ` (token: ${pageToken.substring(0, 10)}...)` : ''}`);
+      if (isDevelopment) {
+        console.log(`[YouTube API] Fetching page ${pageCount}${pageToken ? ` (token: ${pageToken.substring(0, 10)}...)` : ''}`);
+      }
       
       const response: AxiosResponse<YouTubeCommentThreadResponse> = await axios.get<YouTubeCommentThreadResponse>(
         `${YOUTUBE_API_BASE_URL}/commentThreads`,
@@ -67,34 +71,29 @@ export async function fetchComments(
         }
       );
 
-      // API 응답 구조 디버깅
-      console.log(`[YouTube API] Response metadata:`, {
-        kind: response.data.kind,
-        etag: response.data.etag?.substring(0, 20) + '...',
-        nextPageToken: response.data.nextPageToken ? response.data.nextPageToken.substring(0, 20) + '...' : 'NONE',
-        pageInfo: response.data.pageInfo,
-        itemCount: response.data.items?.length || 0,
-      });
-
       // 댓글 데이터 변환 및 추가
       const comments = response.data.items.map(transformComment);
       allComments.push(...comments);
-      console.log(`[YouTube API] Page ${pageCount}: ${comments.length} comments fetched, total: ${allComments.length}`);
 
       // 다음 페이지 토큰 설정
       pageToken = response.data.nextPageToken;
-      console.log(`[YouTube API] nextPageToken:`, pageToken ? `${pageToken.substring(0, 20)}...` : 'undefined (마지막 페이지)');
 
       // 1,000개 도달 시 중단
       if (allComments.length >= MAX_TOTAL_COMMENTS) {
-        console.log(`[YouTube API] Reached maximum limit of ${MAX_TOTAL_COMMENTS} comments`);
+        if (isDevelopment) {
+          console.log(`[YouTube API] Reached maximum limit of ${MAX_TOTAL_COMMENTS} comments`);
+        }
         break;
       }
     } while (pageToken);
 
     // 1,000개 초과 시 자르기
     const finalComments = allComments.slice(0, MAX_TOTAL_COMMENTS);
-    console.log(`[YouTube API] Completed! Total comments fetched: ${finalComments.length} from ${pageCount} pages`);
+    
+    if (isDevelopment) {
+      console.log(`[YouTube API] Fetched ${finalComments.length} comments from video: ${videoId}`);
+    }
+    
     return finalComments;
   } catch (error) {
     throw handleYouTubeApiError(error);

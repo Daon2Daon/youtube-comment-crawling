@@ -249,3 +249,110 @@ API가 프론트엔드로 반환해야 할 댓글 객체(JSON)의 표준 형식�
 
 #### **3단계 (선택)**: Phase 5 + Phase 6
 → 프로덕션 레벨 품질 달성
+
+---
+
+## 🚀 배포 가이드
+
+### Synology NAS Docker 배포
+
+이 프로젝트는 Synology NAS에서 Docker를 통해 쉽게 배포할 수 있도록 설정되어 있습니다.
+
+#### 📝 빠른 시작
+
+```bash
+# 1. 환경 변수 설정
+cp .env.example .env.production
+# .env.production 파일을 열어 YOUTUBE_API_KEY 입력
+
+# 2. 배포 스크립트 실행
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+#### 📚 상세 가이드
+
+- **빠른 시작**: [QUICKSTART.md](./docs/QUICKSTART.md) - 5분 안에 배포
+- **전체 가이드**: [DEPLOYMENT.md](./docs/DEPLOYMENT.md) - 상세한 배포 절차
+
+#### 🐳 Docker 파일 구성
+
+- `Dockerfile` - 멀티 스테이지 빌드 설정
+- `docker-compose.yml` - 컨테이너 오케스트레이션
+- `.dockerignore` - 이미지 최적화
+- `nginx.conf` - 리버스 프록시 설정 (선택사항)
+
+#### 🔧 주요 기능
+
+- ✅ 멀티 스테이지 빌드로 이미지 크기 최적화
+- ✅ Non-root 사용자로 보안 강화
+- ✅ 헬스체크 API 포함
+- ✅ 리소스 제한 및 로깅 설정
+- ✅ 자동 재시작 정책
+
+#### 🌐 배포 후 접속
+
+```
+http://your-synology-ip:3000
+```
+
+#### 📊 모니터링
+
+```bash
+# 컨테이너 상태
+docker ps
+
+# 로그 확인
+docker logs -f youtube-comments-app
+
+# 헬스체크
+curl http://localhost:3000/api/health
+```
+
+---
+
+## 🛠️ 개발 환경
+
+### 로컬 개발 서버 실행
+
+```bash
+npm install
+npm run dev
+```
+
+### Docker로 로컬 테스트
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## 📦 주요 기술 스택
+
+- **프레임워크**: Next.js 16.0.0 (App Router)
+- **언어**: TypeScript (Strict Mode)
+- **스타일링**: Tailwind CSS 4.0
+- **UI 컴포넌트**: Shadcn UI + Radix UI
+- **API**: YouTube Data API v3
+- **검증**: Zod + next-safe-action
+- **날짜 처리**: date-fns
+- **HTTP 클라이언트**: axios
+- **컨테이너화**: Docker + Docker Compose
+
+---
+
+## 🔐 환경 변수
+
+| 변수명 | 설명 | 필수 |
+|--------|------|------|
+| `YOUTUBE_API_KEY` | YouTube Data API v3 키 | ✅ |
+| `NODE_ENV` | 환경 설정 (production/development) | ✅ |
+| `PORT` | 서버 포트 (기본값: 3000) | ❌ |
+| `TZ` | 타임존 (기본값: Asia/Seoul) | ❌ |
+
+---
+
+## 📄 라이선스
+
+MIT License
