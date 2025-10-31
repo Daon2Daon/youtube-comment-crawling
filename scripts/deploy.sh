@@ -97,28 +97,29 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     log_success "이전 컨테이너 정리 완료."
 fi
 
-# 6. Docker 이미지 빌드
-log_info "Docker 이미지 빌드 중..."
-docker-compose build
-
-if [ $? -eq 0 ]; then
-    log_success "Docker 이미지 빌드 완료!"
-else
-    log_error "Docker 이미지 빌드 실패!"
-    exit 1
-fi
-
-# 7. 배포 방법 선택
+# 6. 배포 방법 선택 (빌드 전에 선택)
 echo ""
 echo "=========================================="
 echo "배포 방법을 선택하세요:"
 echo "  1) 로컬 테스트 (현재 시스템에서 실행)"
-echo "  2) Synology NAS에 배포 (이미지 저장 및 전송)"
+echo "  2) Synology NAS에 배포 (x86_64/amd64 플랫폼)"
 echo "=========================================="
 read -p "선택 (1/2): " deploy_choice
 
+# 7. 선택에 따라 Docker 이미지 빌드
 if [ "$deploy_choice" == "1" ]; then
-    # 로컬 테스트
+    # 로컬 테스트용 빌드 (현재 시스템 플랫폼)
+    log_info "Docker 이미지 빌드 중 (로컬 플랫폼)..."
+    docker-compose build
+    
+    if [ $? -eq 0 ]; then
+        log_success "Docker 이미지 빌드 완료!"
+    else
+        log_error "Docker 이미지 빌드 실패!"
+        exit 1
+    fi
+    
+    # 로컬 테스트 실행
     log_info "로컬에서 컨테이너 실행 중..."
     docker-compose up -d
     
@@ -139,8 +140,18 @@ if [ "$deploy_choice" == "1" ]; then
     fi
 
 elif [ "$deploy_choice" == "2" ]; then
-    # Synology NAS 배포
-    log_info "Synology NAS 배포 준비 중..."
+    # Synology NAS 배포용 빌드 (linux/amd64 플랫폼)
+    log_info "Docker 이미지 빌드 중 (linux/amd64 플랫폼 - Synology NAS용)..."
+    
+    # linux/amd64 플랫폼으로 빌드
+    docker build --platform linux/amd64 -t youtube-comments-app:latest .
+    
+    if [ $? -eq 0 ]; then
+        log_success "Docker 이미지 빌드 완료! (linux/amd64)"
+    else
+        log_error "Docker 이미지 빌드 실패!"
+        exit 1
+    fi
     
     # 이미지를 tar 파일로 저장
     IMAGE_NAME="youtube-comments-app:latest"
@@ -159,21 +170,47 @@ elif [ "$deploy_choice" == "2" ]; then
         echo ""
         log_success "배포 파일이 준비되었습니다!"
         echo ""
-        log_info "다음 단계:"
-        echo "  1. $TAR_FILE 파일을 Synology NAS로 전송하세요."
-        echo "     예: scp $TAR_FILE admin@your-synology-ip:/volume1/docker/youtube-comments/"
+        log_info "다음 단계: Synology NAS로 파일 전송"
         echo ""
-        echo "  2. Synology NAS에 SSH로 접속하세요."
-        echo "     예: ssh admin@your-synology-ip"
+        log_warning "⚠️  중요: Docker 이미지 외에 다음 파일들도 전송해야 합니다:"
+        echo "  - $TAR_FILE (Docker 이미지)"
+        echo "  - .env.production (환경 변수 - API 키 포함) ⭐"
+        echo "  - docker-compose.synology.yml (Docker Compose 설정)"
         echo ""
-        echo "  3. 이미지를 로드하세요."
-        echo "     cd /volume1/docker/youtube-comments"
-        echo "     docker load -i $TAR_FILE"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "📦 단계 1: Docker 이미지 전송"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "ssh -p 62435 mook@121.129.33.145 'cat > /tmp/$TAR_FILE' < $TAR_FILE"
         echo ""
-        echo "  4. 컨테이너를 실행하세요."
-        echo "     docker-compose up -d"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🔐 단계 2: 환경 변수 파일 전송 (필수!)"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "ssh -p 62435 mook@121.129.33.145 'cat > /tmp/.env.production' < .env.production"
         echo ""
-        log_info "자세한 내용은 docs/DEPLOYMENT.md 파일을 참고하세요."
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "📄 단계 3: Docker Compose 파일 전송"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "ssh -p 62435 mook@121.129.33.145 'cat > /tmp/docker-compose.yml' < docker-compose.synology.yml"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🚀 단계 4: Synology에서 설치 및 실행"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "ssh -p 62435 mook@121.129.33.145 << 'ENDSSH'"
+        echo "  # 파일 이동"
+        echo "  sudo mkdir -p /volume1/docker/youtube-comments"
+        echo "  sudo mv /tmp/$TAR_FILE /volume1/docker/youtube-comments/"
+        echo "  sudo mv /tmp/.env.production /volume1/docker/youtube-comments/"
+        echo "  sudo mv /tmp/docker-compose.yml /volume1/docker/youtube-comments/"
+        echo "  sudo chown -R mook:users /volume1/docker/youtube-comments"
+        echo ""
+        echo "  # Docker 이미지 로드 및 실행"
+        echo "  cd /volume1/docker/youtube-comments"
+        echo "  docker load -i $TAR_FILE"
+        echo "  docker-compose up -d"
+        echo "  docker logs -f youtube-comments-app"
+        echo "ENDSSH"
+        echo ""
+        log_info "자세한 내용은 docs/DEPLOYMENT.md 또는 DEPLOY_STEPS.md를 참고하세요."
     else
         log_error "이미지 저장 실패!"
         exit 1
