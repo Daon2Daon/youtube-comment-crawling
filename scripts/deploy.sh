@@ -37,38 +37,33 @@ echo "  YouTube 댓글 크롤링 앱 배포 스크립트"
 echo "=========================================="
 echo ""
 
-# 1. 환경 변수 파일 확인
+# 1. 환경 변수 파일 확인 (빌드용 최소 템플릿)
 log_info "환경 변수 파일 확인 중..."
 if [ ! -f ".env.production" ]; then
-    log_warning ".env.production 파일이 없습니다."
+    log_warning ".env.production 파일이 없습니다. 템플릿 파일을 생성합니다..."
     
-    if [ -f ".env.example" ]; then
-        log_info ".env.example을 복사합니다..."
-        cp .env.example .env.production
-        log_warning "⚠️  .env.production 파일을 열어 실제 값으로 수정해주세요!"
-        log_warning "   특히 YOUTUBE_API_KEY를 반드시 설정하세요."
-        exit 1
-    else
-        log_error ".env.example 파일이 없습니다!"
-        log_info "다음 내용으로 .env.production 파일을 생성해주세요:"
-        echo ""
-        echo "YOUTUBE_API_KEY=your_youtube_api_key_here"
-        echo "NODE_ENV=production"
-        echo "TZ=Asia/Seoul"
-        echo "PORT=3000"
-        echo "HOSTNAME=0.0.0.0"
-        exit 1
-    fi
+    # 최소한의 템플릿 파일 생성 (빌드용)
+    cat > .env.production << 'EOF'
+# 환경 변수 설정
+# Docker 실행 시 실제 API 키를 설정하세요.
+NODE_ENV=production
+TZ=Asia/Seoul
+PORT=3000
+HOSTNAME=0.0.0.0
+
+# API 키는 Docker 설정 시 입력
+# YOUTUBE_API_KEY=your_youtube_api_key_here
+# GEMINI_API_KEY=your_gemini_api_key_here
+EOF
+    
+    log_success ".env.production 템플릿 파일 생성 완료."
+    log_warning "⚠️  주의: Docker 실행 시 .env.production 파일에 실제 API 키를 설정해야 합니다!"
 else
     log_success ".env.production 파일이 존재합니다."
 fi
 
-# 2. YOUTUBE_API_KEY 확인
-if grep -q "your_youtube_api_key_here" .env.production; then
-    log_error "YOUTUBE_API_KEY가 설정되지 않았습니다!"
-    log_warning ".env.production 파일을 열어 실제 API 키를 입력하세요."
-    exit 1
-fi
+# 2. API 키 검증은 건너뜀 (Docker 설정 시 입력 예정)
+log_info "API 키 검증은 건너뜁니다. (Docker 설정 시 입력 예정)"
 
 # 3. Docker 설치 확인
 log_info "Docker 설치 확인 중..."

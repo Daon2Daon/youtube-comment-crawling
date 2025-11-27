@@ -127,3 +127,7 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
 
 
 
+
+
+
+

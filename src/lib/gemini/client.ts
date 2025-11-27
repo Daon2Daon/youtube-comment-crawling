@@ -13,20 +13,6 @@ import type {
 } from "@/types/analysis";
 
 /**
- * Gemini API 키 확인
- */
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-if (!GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY가 설정되지 않았습니다.");
-}
-
-/**
- * Gemini AI 클라이언트 초기화
- */
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
-/**
  * 사용할 모델 이름 (환경 변수로 설정 가능)
  * 
  * 공식 문서 참고: https://ai.google.dev/gemini-api/docs/models?hl=ko
@@ -46,13 +32,6 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const MODEL_NAME = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
 
 /**
- * 모델 초기화
- */
-const model = genAI.getGenerativeModel({ 
-  model: MODEL_NAME
-});
-
-/**
  * Gemini API 에러 클래스
  */
 export class GeminiApiError extends Error {
@@ -64,6 +43,39 @@ export class GeminiApiError extends Error {
     super(message);
     this.name = "GeminiApiError";
   }
+}
+
+/**
+ * Gemini AI 클라이언트 인스턴스 (지연 초기화)
+ */
+let genAI: GoogleGenerativeAI | null = null;
+let model: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null = null;
+
+/**
+ * Gemini API 키를 확인하고 클라이언트를 초기화합니다.
+ * 빌드 시점에는 실행되지 않고, 실제 사용 시점에만 실행됩니다.
+ */
+function ensureGeminiClient(): ReturnType<GoogleGenerativeAI["getGenerativeModel"]> {
+  if (model) {
+    return model;
+  }
+
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+  if (!GEMINI_API_KEY) {
+    throw new GeminiApiError(
+      "GEMINI_API_KEY가 설정되지 않았습니다.",
+      "MISSING_API_KEY",
+      500
+    );
+  }
+
+  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  model = genAI.getGenerativeModel({ 
+    model: MODEL_NAME
+  });
+
+  return model;
 }
 
 /**
@@ -117,7 +129,8 @@ async function classifyBatch(
   const prompt = createClassificationPrompt(comments);
 
   try {
-    const result = await model.generateContent(prompt);
+    const geminiModel = ensureGeminiClient();
+    const result = await geminiModel.generateContent(prompt);
     const response = result.response;
     const text = response.text();
 
@@ -246,7 +259,8 @@ export async function generateInsights(categorizedComments: {
   const prompt = createInsightPrompt(categorizedComments);
 
   try {
-    const result = await model.generateContent(prompt);
+    const geminiModel = ensureGeminiClient();
+    const result = await geminiModel.generateContent(prompt);
     const response = result.response;
     const text = response.text();
 
