@@ -8,8 +8,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Smile, Frown, Minus } from "lucide-react";
 import type { CategorizedComments } from "@/types/analysis";
-import type { Comment } from "@/types/youtube";
-import { CommentItem } from "./CommentItem";
+import { SimpleCommentList } from "./SimpleCommentList";
 
 interface SentimentTabsProps {
   /** 카테고리별로 분류된 댓글 */
@@ -48,44 +47,19 @@ export const SentimentTabs = ({ categorizedComments }: SentimentTabsProps) => {
       </TabsList>
 
       <TabsContent value="positive" className="mt-4">
-        <CommentList comments={categorizedComments.positive} />
+        <SimpleCommentList comments={categorizedComments.positive} />
       </TabsContent>
 
       <TabsContent value="negative" className="mt-4">
-        <CommentList comments={categorizedComments.negative} />
+        <SimpleCommentList comments={categorizedComments.negative} />
       </TabsContent>
 
       <TabsContent value="neutral" className="mt-4">
-        <CommentList comments={categorizedComments.neutral} />
+        <SimpleCommentList comments={categorizedComments.neutral} />
       </TabsContent>
     </Tabs>
   );
 };
-
-/**
- * 댓글 목록 컴포넌트
- */
-const CommentList = ({ comments }: { comments: Comment[] }) => {
-  if (comments.length === 0) {
-    return (
-      <div className="py-8 text-center text-zinc-500 dark:text-zinc-400">
-        해당 카테고리의 댓글이 없습니다.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {comments.map((comment) => (
-        <CommentItem key={comment.commentId} comment={comment} />
-      ))}
-    </div>
-  );
-};
-
-
-
-
 
 
 

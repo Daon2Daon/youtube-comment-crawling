@@ -6,31 +6,21 @@ services:
   # ==========================================
   youtube-comments-app:
     container_name: youtube-comments-app
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: youtube-comments-app:latest
-    
+    image: ghcr.io/daon2daon/youtube-comment-crawling:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     # 포트 매핑 (호스트:컨테이너)
-    # Synology NAS에서는 다른 포트를 사용하려면 "8080:3000" 형식으로 변경
+    # .env 파일에서 HOST_PORT 설정 (기본값: 3000)
     ports:
-      - "2923:3000"
-    
-    # 환경 변수 파일 (선택사항)
-    # .env.production 파일이 있으면 자동으로 로드
-    # 없으면 아래 environment 섹션의 값 사용
-    env_file:
-      - .env.production
-    
-    # 환경 변수 직접 설정
-    # .env.production 파일이 없을 때 사용됨
+      - "${HOST_PORT:-3000}:3000"
+
+    # 환경 변수 설정
+    # .env 파일에서 자동으로 로드됨 (docker-compose 기본 동작)
     environment:
       - NODE_ENV=production
       - TZ=Asia/Seoul
-      # YouTube API 키는 반드시 설정 필요
-      # 방법 1: .env.production 파일에서 설정 (권장)
-      # 방법 2: 아래 주석을 해제하고 직접 입력
-      # - YOUTUBE_API_KEY=your_api_key_here
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     
     # 재시작 정책
     restart: unless-stopped
@@ -61,35 +51,4 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    
-    # 네트워크
-    networks:
-      - youtube-comments-network
-
-  # ==========================================
-  # Nginx 리버스 프록시 (선택사항)
-  # HTTPS 및 도메인 사용 시 활성화
-  # ==========================================
-  # nginx:
-  #   container_name: youtube-comments-nginx
-  #   image: nginx:alpine
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./ssl:/etc/nginx/ssl:ro
-  #   depends_on:
-  #     - youtube-comments-app
-  #   restart: unless-stopped
-  #   networks:
-  #     - youtube-comments-network
-
-networks:
-  youtube-comments-network:
-    driver: bridge
-
-# 볼륨 (필요시 추가)
-# volumes:
-#   app-data:
 

@@ -29,11 +29,7 @@ export const ExportToExcelButton = ({ comments, disabled }: ExportToExcelButtonP
    * Excel 파일로 다운로드
    */
   const handleExport = () => {
-    if (comments.length === 0) {
-      alert("다운로드할 댓글이 없습니다.");
-      return;
-    }
-
+    // 버튼이 이미 disabled 상태이므로 빈 배열 체크는 불필요
     // Excel 데이터 준비
     const excelData = comments.map((comment) => ({
       작성자: comment.author,
